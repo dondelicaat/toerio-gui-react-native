@@ -81,6 +81,9 @@ function RecordScreen() {
   }
 
   const start = async () => {
+    console.log('start.....')
+    console.log(BackgroundGeolocation)
+    BackgroundGeolocation.start()
     const microphonePermission = Platform.OS === 'ios' ? PERMISSIONS.IOS.MICROPHONE : PERMISSIONS.ANDROID.RECORD_AUDIO;
     const coarsePermission = PERMISSIONS.ANDROID.ACCESS_COARSE_LOCATION;
     const backgroundPermission = Platform.OS === 'ios' ? PERMISSIONS.IOS.LOCATION_ALWAYS : PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION;
@@ -118,6 +121,10 @@ function RecordScreen() {
     setRecording(true);
     console.log('audiorecorderd before start:', AudioRecord);
     AudioRecord.start();
+    BackgroundGeolocation.start()
+
+
+
     // Alert user that permission is required
     return;
   
@@ -127,14 +134,85 @@ function RecordScreen() {
     if (!recording) return;
     console.log('stop record');
     let audioFile = await AudioRecord.stop();
+    BackgroundGeolocation.stop()
+
+
+
+
     setRecording(false);
     console.log('audioFile', audioFile);
   };
 
   useEffect(() => {
     // Has to be useEffect since otherwise get in render-loop.
-    
     getLocation();
+
+    BackgroundGeolocation.configure({
+      desiredAccuracy: BackgroundGeolocation.HIGH_ACCURACY,
+      stationaryRadius: 50,
+      distanceFilter: 50,
+      notificationTitle: 'Background tracking',
+      notificationText: 'enabled',
+      debug: true,
+      startOnBoot: false,
+      stopOnTerminate: true,
+      locationProvider: BackgroundGeolocation.ACTIVITY_PROVIDER,
+      interval: 10000,
+      fastestInterval: 5000,
+      activitiesInterval: 10000,
+      stopOnStillActivity: false,
+      url: 'http://192.168.81.15:3000/location',
+      httpHeaders: {
+        'X-FOO': 'bar'
+      },
+      // customize post properties
+      postTemplate: {
+        lat: '@latitude',
+        lon: '@longitude',
+        foo: 'bar' // you can also add your own properties
+      }
+    });
+
+    BackgroundGeolocation.on('location', (location) => {
+      console.log(location)
+      // handle your locations here
+      // to perform long running operation on iOS
+      // you need to create background task
+      BackgroundGeolocation.startTask(taskKey => {
+        // execute long running task
+        // eg. ajax post location
+        // IMPORTANT: task has to be ended by endTask
+        BackgroundGeolocation.endTask(taskKey);
+      });
+    });
+
+    BackgroundGeolocation.on('stop', () => {
+      console.log('[INFO] BackgroundGeolocation service has been stopped');
+    });
+
+    BackgroundGeolocation.on('start', () => {
+      console.log('[INFO] BackgroundGeolocation service has been started');
+    });
+
+
+    BackgroundGeolocation.on('authorization', (status) => {
+      console.log('[INFO] BackgroundGeolocation authorization status: ' + status);
+      if (status !== BackgroundGeolocation.AUTHORIZED) {
+        // we need to set delay or otherwise alert may not be shown
+        setTimeout(() =>
+          Alert.alert('App requires location tracking permission', 'Would you like to open app settings?', [
+            { text: 'Yes', onPress: () => BackgroundGeolocation.showAppSettings() },
+            { text: 'No', onPress: () => console.log('No Pressed'), style: 'cancel' }
+          ]), 1000);
+      }
+    });
+
+    console.log('background:', BackgroundGeolocation)
+
+    return () => {
+      console.log('triggered unmount')
+      BackgroundGeolocation.removeAllListeners();
+    }
   }, [])
   
   return (
