@@ -24,8 +24,7 @@ const microphoneOptions = {
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
-    height: '60%',
+    height: '80%',
     width: '100%',
     justifyContent: 'flex-end',
     alignItems: 'center',
@@ -53,7 +52,6 @@ function RecordScreen() {
 
   AudioRecord.on('data', data => {
     const chunk = Buffer.from(data, 'base64');
-    console.log(chunk)
     // base64-encoded audio data chunks
   });
   
@@ -117,12 +115,12 @@ function RecordScreen() {
       return;
     } 
     
-    console.log('start recording.')
     setRecording(true);
-    console.log('audiorecorderd before start:', AudioRecord);
+    console.log('backgroundgeolocator before start:', BackgroundGeolocation);
     AudioRecord.start();
+    try {
     BackgroundGeolocation.start()
-
+    } catch (err) {console.log(err)}
 
 
     // Alert user that permission is required
@@ -142,6 +140,7 @@ function RecordScreen() {
     setRecording(false);
     console.log('audioFile', audioFile);
   };
+
 
   useEffect(() => {
     // Has to be useEffect since otherwise get in render-loop.
@@ -217,28 +216,28 @@ function RecordScreen() {
   
   return (
     <View>
-    <View style={styles.container}>
-    <MapView
-      provider={PROVIDER_GOOGLE} // remove if not using Google Maps
-      style={styles.map}
-      region={center}
-    >
-      { tour && 
-        <Geojson
-          geojson = {tour}
-          strokeColor="red"
-          fillColor="green"
-          strokeWidth={2}
-        />
-      }
+      <View style={styles.container}>
+        <MapView
+          provider={PROVIDER_GOOGLE} // remove if not using Google Maps
+          style={styles.map}
+          region={center}
+        >
+          { tour && 
+            <Geojson
+              geojson = {tour}
+              strokeColor="red"
+              fillColor="green"
+              strokeWidth={2}
+            />
+          }
 
-    </MapView>
-  </View>
+        </MapView>
+      </View>
 
-        <View style={styles.row}>
-                <Button onPress={start} title="Record" disabled={recording} />
-                <Button onPress={stop} title="Stop" disabled={!recording} />
-        </View>
+      <View style={styles.row}>
+              <Button onPress={start} title="Record" disabled={recording} />
+              <Button onPress={stop} title="Stop" disabled={!recording} />
+      </View>
 
   </View>
   );

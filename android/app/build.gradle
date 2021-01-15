@@ -188,6 +188,8 @@ dependencies {
 
     implementation 'androidx.multidex:multidex: 2.0.1'
 
+    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
+
 
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
 
