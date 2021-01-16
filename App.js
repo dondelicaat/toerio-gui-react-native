@@ -8,7 +8,7 @@
 
 
 import HomeScreen from './home'
-import RecordScreen from './RecordScreen'
+import RecordScreen from './src/views/RecordScreen'
 import TourMap from './TourMap'
 
 import { NavigationContainer } from '@react-navigation/native';

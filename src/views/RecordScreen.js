@@ -2,13 +2,14 @@ import React, { useState, useEffect }  from 'react';
 import {Platform, View, StyleSheet, Button} from 'react-native'
 import MapView, { PROVIDER_GOOGLE, Polyline } from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
-import { Buffer } from 'buffer';
 import {check, request, PERMISSIONS} from 'react-native-permissions';
 
-import useTracking from './src/hooks/useTracking';
+import useTracking from '../hooks/useTracking';
 
-import useMicrophoneRecorder from './src/hooks/useMicrophoneRecorder'
-
+import useMicrophoneRecorder from '../hooks/useMicrophoneRecorder'
+import { Audio } from 'expo-av';
+import { Sound } from 'expo-av/build/Audio';
+import * as FileSystem from 'expo-file-system';
 
 const styles = StyleSheet.create({
   container: {
@@ -32,6 +33,10 @@ const styles = StyleSheet.create({
 function RecordScreen() {
   const [points, setPoints] = useState([]);
   const [recording, setRecording] = useState(false)
+  const [pause, setPause] = useState(false)
+
+
+
   const [center, setCenter] = useState({
     latitude: 53.66,
     longitude: 6.66,
@@ -39,8 +44,8 @@ function RecordScreen() {
     longitudeDelta: 0.0121
   });
 
-  const { location, history, distance } = useTracking(recording)
-  useMicrophoneRecorder(recording)
+  const { location, history, distance } = useTracking(recording, pause)
+  const { fileUri } = useMicrophoneRecorder(recording, pause)
 
 
   const getLocation = async () => {
@@ -92,7 +97,7 @@ function RecordScreen() {
       await request(backgroundPermission, rationale);
       return;
     } 
-    
+    console.log('permissions have been checked. Set recording to true.')
     setRecording(true);
     return;
   
@@ -100,8 +105,13 @@ function RecordScreen() {
 
   const stop = async () => {
     if (!recording) return;
+    setPause(false);
     setRecording(false);
     
+  };
+
+  const toggle = async () => {
+    setPause(!pause);
   };
 
 
@@ -130,10 +140,18 @@ function RecordScreen() {
         </MapView>
       </View>
 
-      <View style={styles.row}>
-              <Button onPress={start} title="Record" disabled={recording} />
-              <Button onPress={stop} title="Stop" disabled={!recording} />
-      </View>
+      {
+        !recording ?
+          <View style={styles.row}>
+            <Button onPress={start} title="Start" />
+          </View>
+        :
+          <View style={styles.row}>
+            <Button onPress={toggle} title={pause ? 'Resume' : 'Pause'} />
+            <Button onPress={stop} title="Finish" />
+          </View>
+      }
+
 
   </View>
   );
