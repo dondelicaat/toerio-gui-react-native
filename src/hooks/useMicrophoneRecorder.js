@@ -4,24 +4,66 @@
 
 */
 
-import {useEffect, useState} from 'react';
+import { useEffect, useState } from 'react';
+import { Audio } from 'expo-av';
+
+const useMicrophoneRecorder = (recording) => {
+  const [timestamp, setTimestamp] = useState(0);
+  const [recorder, setRecorder ] = useState(null)
 
 
-const useTracking = (isActive) => {
-  const [location, setLocation] = useState(defaultLocation);
-  const [chunks, setChunks] = useState([]);
-  const [distance, setDistance] = useState(0);
+  const startRecording = async () => {
+    try {
+      await Audio.requestPermissionsAsync();
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      }); 
 
-  console.log('USE TRACKING RENDERED')
+      console.log('Start recording...')
+      const recorder = new Audio.Recording();
+      await recorder.prepareToRecordAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
+      await recorder.startAsync();
+      setRecorder(recorder)
+    } catch (err) {
+      console.log('Failed to start recording:', + err.message);
+    }
+  }
+
+  const stopRecording = async () => {
+    try {
+      console.log('stopping recording');
+      await recorder.stopAndUnloadAsync();
+      const uri = recorder.getURI(); 
+      setRecorder(undefined);
+      console.log('Recording stopped and stored at', uri);
+    } catch (err) {
+      console.log('Failed to stop recording' + err);
+    }
+  }
 
   useEffect(() => {
+    console.log('RECORDING STATE:', recording);
+    // Recorder can also be undefined..
+    if (!recording) {
+      // If recorder for some reason failed and is undefined than simply return
+      if (!recorder) { return; }
+      stopRecording();
+
+    // Else if not recording start it.
+    } else {
+      startRecording();
+    }
+
+    
     
     return () => {
-      console.log('Removing all listeners');
+      // cleanup... 
     };
-  }, [isActive]);
+  }, [recording]);
 
-  return {location, history, distance};
+  return { timestamp };
 };
 
-export default useTracking;
+
+export default useMicrophoneRecorder;
