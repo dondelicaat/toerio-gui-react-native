@@ -10,12 +10,14 @@ import { Audio } from 'expo-av';
 const useMicrophoneRecorder = (recording) => {
   const [timestamp, setTimestamp] = useState(0);
   const [recorder, setRecorder ] = useState(null)
+  const [fileUri, setfileUri] = useState(null);
 
 
   const startRecording = async () => {
     try {
       await Audio.requestPermissionsAsync();
       await Audio.setAudioModeAsync({
+        staysActiveInBackground : true,
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
       }); 
@@ -36,6 +38,7 @@ const useMicrophoneRecorder = (recording) => {
       await recorder.stopAndUnloadAsync();
       const uri = recorder.getURI(); 
       setRecorder(undefined);
+      setfileUri(uri)
       console.log('Recording stopped and stored at', uri);
     } catch (err) {
       console.log('Failed to stop recording' + err);
@@ -62,7 +65,7 @@ const useMicrophoneRecorder = (recording) => {
     };
   }, [recording]);
 
-  return { timestamp };
+  return { fileUri };
 };
 
 
