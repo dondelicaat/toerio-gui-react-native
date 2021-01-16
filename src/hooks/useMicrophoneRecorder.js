@@ -7,15 +7,16 @@
 import { useEffect, useState } from 'react';
 import { Audio } from 'expo-av';
 
-const useMicrophoneRecorder = (recording) => {
+const useMicrophoneRecorder = (recording, setToPause) => {
   const [timestamp, setTimestamp] = useState(0);
-  const [recorder, setRecorder ] = useState(null)
+  const [recorder, setRecorder ] = useState()
   const [fileUri, setfileUri] = useState(null);
 
 
   const startRecording = async () => {
     try {
       await Audio.requestPermissionsAsync();
+      
       await Audio.setAudioModeAsync({
         staysActiveInBackground : true,
         allowsRecordingIOS: true,
@@ -24,46 +25,62 @@ const useMicrophoneRecorder = (recording) => {
 
       console.log('Start recording...')
       const recorder = new Audio.Recording();
-      await recorder.prepareToRecordAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
+      const res = await recorder.prepareToRecordAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
       await recorder.startAsync();
       setRecorder(recorder)
     } catch (err) {
-      console.log('Failed to start recording:', + err.message);
+      console.log('Failed to start recording:', + err);
     }
   }
 
   const stopRecording = async () => {
     try {
-      console.log('stopping recording');
       await recorder.stopAndUnloadAsync();
       const uri = recorder.getURI(); 
-      setRecorder(undefined);
       setfileUri(uri)
-      console.log('Recording stopped and stored at', uri);
+      setRecorder(undefined)
     } catch (err) {
       console.log('Failed to stop recording' + err);
     }
   }
 
-  useEffect(() => {
-    console.log('RECORDING STATE:', recording);
-    // Recorder can also be undefined..
-    if (!recording) {
-      // If recorder for some reason failed and is undefined than simply return
-      if (!recorder) { return; }
-      stopRecording();
+  const toggle = async () => {
+    if (!recorder && recording) {
+      console.log('start recording...')
+      await startRecording();
+    } else if (recorder) {
 
-    // Else if not recording start it.
-    } else {
-      startRecording();
+      if (!recording) {
+        console.log('stop recording...')
+        await stopRecording();
+      } else {
+        // Implies that someone set it to pause
+        if (setToPause) {
+          console.log('pause recording...')
+          const status = await recorder.getStatusAsync()
+          if (status.isRecording) { 
+            await recorder.pauseAsync();
+          }
+        } else {
+          console.log('resume recording...')
+          const status = await recorder.getStatusAsync()
+          if (!status.isRecording) { 
+            await recorder.startAsync();
+          }
+        }
+      }
+
+      
     }
+  }
 
-    
-    
+  useEffect(() => {
+    toggle();
+
     return () => {
       // cleanup... 
     };
-  }, [recording]);
+  }, [recording, setToPause]);
 
   return { fileUri };
 };
