@@ -11,10 +11,7 @@ const useTracking = (isActive) => {
   const [history, setHistory] = useState([]);
   const [distance, setDistance] = useState(0);
 
-  console.log('USE TRACKING RENDERED')
-
   useEffect(() => {
-    console.log('USE EFFECT TRIGGERED')
     if (!isActive) {
       return;
     }
@@ -72,7 +69,7 @@ const useTracking = (isActive) => {
     });
 
     BackgroundGeolocation.on('location', (location) => {
-      console.log('loc', location);
+      // console.log('loc', location);
       setLocation((prev) => ({
         ...prev,
         latitude: location.latitude,
@@ -101,6 +98,7 @@ const useTracking = (isActive) => {
           longitude: location.longitude,
         });
       });
+      
       // handle your locations here
       // to perform long running operation on iOS
       // you need to create background task
