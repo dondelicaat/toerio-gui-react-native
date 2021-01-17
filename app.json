@@ -1,4 +1,14 @@
 {
   "name": "toerioGui",
-  "displayName": "toerioGui"
+  "displayName": "toerioGui",
+
+  "expo": {
+    "ios": {
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "audio"
+        ]
+      }
+    }
+  }
 }
