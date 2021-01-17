@@ -6,8 +6,11 @@
 
 import { useEffect, useState } from 'react';
 import { Audio } from 'expo-av';
+import recordStateEnum from '../utils/recordStateEnum'
 
-const useMicrophoneRecorder = (recording, setToPause) => {
+
+
+const useMicrophoneRecorder = (recordState) => {
   const [timestamp, setTimestamp] = useState(0);
   const [recorder, setRecorder ] = useState()
   const [fileUri, setfileUri] = useState(null);
@@ -23,7 +26,6 @@ const useMicrophoneRecorder = (recording, setToPause) => {
         playsInSilentModeIOS: true,
       }); 
 
-      console.log('Start recording...')
       const recorder = new Audio.Recording();
       const res = await recorder.prepareToRecordAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
       await recorder.startAsync();
@@ -45,33 +47,48 @@ const useMicrophoneRecorder = (recording, setToPause) => {
   }
 
   const toggle = async () => {
-    if (!recorder && recording) {
-      console.log('start recording...')
-      await startRecording();
-    } else if (recorder) {
-
-      if (!recording) {
-        console.log('stop recording...')
-        await stopRecording();
-      } else {
-        // Implies that someone set it to pause
-        if (setToPause) {
-          console.log('pause recording...')
-          const status = await recorder.getStatusAsync()
-          if (status.isRecording) { 
-            await recorder.pauseAsync();
-          }
-        } else {
-          console.log('resume recording...')
-          const status = await recorder.getStatusAsync()
-          if (!status.isRecording) { 
-            await recorder.startAsync();
-          }
-        }
+    switch (recordState) {
+      case recordStateEnum.recording: {
+        console.log('start audio recording...')
+        await startRecording();
+        break;
       }
 
-      
-    }
+      case recordStateEnum.paused: {
+        console.log('pause audio recording...')
+
+        const status = await recorder.getStatusAsync()
+        if (status.isRecording) { 
+          await recorder.pauseAsync();
+        }
+
+        break; 
+      }
+
+      case recordStateEnum.resumed: {
+        console.log('resume audio recording...')
+        const status = await recorder.getStatusAsync()
+        if (!status.isRecording) { 
+          await recorder.startAsync();
+        }
+
+        break;
+      }
+
+      case recordStateEnum.stopped: {
+        if (recorder) {
+          console.log('stop audio recording...')
+          await stopRecording();
+        } else 
+          return
+        break;
+      }
+
+      default: 
+        console.log('should not fall through...')
+        throw new Error('unknown option...')
+    } 
+
   }
 
   useEffect(() => {
@@ -80,7 +97,7 @@ const useMicrophoneRecorder = (recording, setToPause) => {
     return () => {
       // cleanup... 
     };
-  }, [recording, setToPause]);
+  }, [recordState]);
 
   return { fileUri };
 };
