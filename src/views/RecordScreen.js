@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
 
 
 
-function RecordScreen() {
+function RecordScreen({ navigation }) {
   const [pause, setPause] = useState(false)
   const [recordState, setRecordState] = useState(recordStateEnum.stopped)
   const [fixedCenter, setFixedCenter] = useState(true)
@@ -44,8 +44,8 @@ function RecordScreen() {
     longitudeDelta: 0.0121
   });
 
-  const { location, history, distance } = useTracking(recordState)
-
+  const { location, history, distance } = useTracking(recordState);
+  const { fileUri } = useMicrophoneRecorder(recordState);
 
   const start = async () => {
     const microphonePermission = Platform.OS === 'ios' ? PERMISSIONS.IOS.MICROPHONE : PERMISSIONS.ANDROID.RECORD_AUDIO;
@@ -84,15 +84,17 @@ function RecordScreen() {
   const finish = async () => {
     setRecordState(recordStateEnum.stopped);
     setPause(false);
-    navigator.navigate('Recording')
+    
+
+    navigation.navigate('SaveRecording', {
+      fileUri: fileUri,
+      history: history,
+      distance: distance
+    });
 
     // Now we have all the state:
     // history + audiofile
     // After finish click send user to form to finish the recording.
-
-
-
-
   };
 
   const toggle = async () => {

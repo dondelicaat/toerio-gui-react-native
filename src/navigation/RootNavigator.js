@@ -1,13 +1,14 @@
 import React from 'react';
-
-import HomeScreen from '../views/home'
-import RecordScreen from '../views/RecordScreen'
-import TourMap from '../views/TourMap'
-
 import Icon from 'react-native-vector-icons/Ionicons';
 import FoundationIcon from 'react-native-vector-icons/Foundation'
-
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+
+import HomeScreen from '../views/home';
+import TourMap from '../views/TourMap';
+import RecordingNavigator from './RecordingNavigator';
+
+
+
 
 
 const Tab = createBottomTabNavigator();
@@ -24,7 +25,7 @@ function RootNavigator() {
             iconName = focused ? 'map' : 'map-outline';
           } else if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Record') {
+          } else if (route.name === 'RecordingNavigator') {
             return <FoundationIcon name={'record'} size = {20} />
           }
 
@@ -44,8 +45,11 @@ function RootNavigator() {
         component={HomeScreen}
       />
       <Tab.Screen
-        name="Record"
-        component={RecordScreen}
+        name="RecordingNavigator"
+        component={RecordingNavigator}
+        options={{
+          tabBarVisible: false
+        }}
       />
       <Tab.Screen
         name="TourMap"
