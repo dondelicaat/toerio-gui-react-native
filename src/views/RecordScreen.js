@@ -7,8 +7,8 @@ import {check, request, PERMISSIONS} from 'react-native-permissions';
 import useTracking from '../hooks/useTracking';
 
 import useMicrophoneRecorder from '../hooks/useMicrophoneRecorder'
-import { Audio } from 'expo-av';
-import { Sound } from 'expo-av/build/Audio';
+
+import recordStateEnum from '../utils/recordStateEnum'
 import * as FileSystem from 'expo-file-system';
 
 const styles = StyleSheet.create({
@@ -31,9 +31,8 @@ const styles = StyleSheet.create({
 
 
 function RecordScreen() {
-  const [points, setPoints] = useState([]);
-  const [recording, setRecording] = useState(false)
   const [pause, setPause] = useState(false)
+  const [recordState, setRecordState] = useState(recordStateEnum.stopped)
 
 
 
@@ -44,8 +43,8 @@ function RecordScreen() {
     longitudeDelta: 0.0121
   });
 
-  const { location, history, distance } = useTracking(recording, pause)
-  const { fileUri } = useMicrophoneRecorder(recording, pause)
+  const { location, history, distance } = useTracking(recordState)
+  // const { fileUri } = useMicrophoneRecorder(recordState)
 
 
   const getLocation = async () => {
@@ -98,20 +97,26 @@ function RecordScreen() {
       return;
     } 
     console.log('permissions have been checked. Set recording to true.')
-    setRecording(true);
+
+    setRecordState(recordStateEnum.recording)
     return;
   
   };
 
   const stop = async () => {
-    if (!recording) return;
+    setRecordState(recordStateEnum.stopped);
     setPause(false);
-    setRecording(false);
-    
   };
 
   const toggle = async () => {
-    setPause(!pause);
+    if (!pause) {
+      setRecordState(recordStateEnum.paused);
+      setPause(true)
+    } else {
+      setRecordState(recordStateEnum.resumed);
+      setPause(false)
+    }
+    
   };
 
 
@@ -141,7 +146,7 @@ function RecordScreen() {
       </View>
 
       {
-        !recording ?
+        recordState === recordStateEnum.stopped ?
           <View style={styles.row}>
             <Button onPress={start} title="Start" />
           </View>
