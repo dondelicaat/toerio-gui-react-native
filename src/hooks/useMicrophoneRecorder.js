@@ -28,18 +28,26 @@ const useMicrophoneRecorder = (recordState) => {
 
       const recorder = new Audio.Recording();
       const res = await recorder.prepareToRecordAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
+      recorder.setOnRecordingStatusUpdate(onRecordingStatusUpdate)
       await recorder.startAsync();
+
+      // Set the uri to let the caller of the hook know where the audiofile can be found.
+      const uri = recorder.getURI(); 
+      setfileUri(uri)
+
       setRecorder(recorder)
     } catch (err) {
       console.log('Failed to start recording:', + err);
     }
   }
 
+  const onRecordingStatusUpdate = (status) => {
+    console.log(status);
+  }
+
   const stopRecording = async () => {
     try {
       await recorder.stopAndUnloadAsync();
-      const uri = recorder.getURI(); 
-      setfileUri(uri)
       setRecorder(undefined)
     } catch (err) {
       console.log('Failed to stop recording' + err);
@@ -80,7 +88,7 @@ const useMicrophoneRecorder = (recordState) => {
           console.log('stop audio recording...')
           await stopRecording();
         } else 
-          return
+          return;
         break;
       }
 
