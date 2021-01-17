@@ -3,18 +3,20 @@ import {Alert} from 'react-native';
 import BackgroundGeolocation from '@mauron85/react-native-background-geolocation';
 import { defaultLocation } from '../utils/vars';
 import { getDistanceFromLatLonInMeter } from '../utils/getDistance';
+import recordStateEnum from '../utils/recordStateEnum'
 
 
-
-const useTracking = (isActive) => {
+const useTracking = (recordState) => {
   const [location, setLocation] = useState(defaultLocation);
   const [history, setHistory] = useState([]);
   const [distance, setDistance] = useState(0);
 
   useEffect(() => {
-    if (!isActive) {
+    
+    if (!recordState || recordState === recordStateEnum.stopped) {
       return;
     }
+
 
     // BackgroundGeolocation.configure({
     //   desiredAccuracy: BackgroundGeolocation.HIGH_ACCURACY,
@@ -69,7 +71,19 @@ const useTracking = (isActive) => {
     });
 
     BackgroundGeolocation.on('location', (location) => {
-      // console.log('loc', location);
+      
+      // When paused we don't want to save new GPS locations.
+      if (recordState === recordStateEnum.paused) {
+        // We do set the location but do not store it in the history. 
+        setLocation((prev) => ({
+          ...prev,
+          latitude: location.latitude,
+          longitude: location.longitude,
+        }));
+        console.log('Paused, not saving locations to history')
+        return;
+      }
+
       setLocation((prev) => ({
         ...prev,
         latitude: location.latitude,
@@ -187,7 +201,7 @@ const useTracking = (isActive) => {
       console.log('Removing all listeners');
       BackgroundGeolocation.removeAllListeners();
     };
-  }, [isActive]);
+  }, [recordState]);
 
   return {location, history, distance};
 };
