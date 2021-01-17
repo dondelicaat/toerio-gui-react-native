@@ -19,6 +19,7 @@
     "axios": "^0.21.1",
     "buffer": "^6.0.3",
     "expo-av": "^8.7.0",
+    "expo-file-system": "^9.3.0",
     "haversine": "^1.1.1",
     "react": "16.13.1",
     "react-native": "0.63.4",
