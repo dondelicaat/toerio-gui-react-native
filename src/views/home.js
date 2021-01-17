@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {Text, View} from 'react-native';
 
 
 function HomeScreen() {
+
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Home!</Text>
+      <Text>"Home container"</Text>
+
     </View>
   );
 }

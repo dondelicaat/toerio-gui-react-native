@@ -6,6 +6,8 @@ import {check, request, PERMISSIONS} from 'react-native-permissions';
 
 import useTracking from '../hooks/useTracking';
 
+import { Audio } from 'expo-av';
+
 import useMicrophoneRecorder from '../hooks/useMicrophoneRecorder'
 
 import recordStateEnum from '../utils/recordStateEnum'
@@ -33,8 +35,7 @@ const styles = StyleSheet.create({
 function RecordScreen() {
   const [pause, setPause] = useState(false)
   const [recordState, setRecordState] = useState(recordStateEnum.stopped)
-
-
+  const [fixedCenter, setFixedCenter] = useState(true)
 
   const [center, setCenter] = useState({
     latitude: 53.66,
@@ -44,30 +45,7 @@ function RecordScreen() {
   });
 
   const { location, history, distance } = useTracking(recordState)
-  // const { fileUri } = useMicrophoneRecorder(recordState)
 
-
-  const getLocation = async () => {
-    const geoPermission = Platform.OS === 'ios' ? PERMISSIONS.IOS.LOCATION_WHEN_IN_USE : PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION;
-
-    const permission = await check(geoPermission);
-    if (permission != 'authorized') {
-      await request(geoPermission)
-    }
-
-    Geolocation.getCurrentPosition((position) => {
-      const region = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-        latitudeDelta: 0.015,
-        longitudeDelta: 0.0121
-      }
-      
-      setCenter(region)
-    }, (err) => {
-      console.log('failed to get position:', err.message);
-    });
-  }
 
   const start = async () => {
     const microphonePermission = Platform.OS === 'ios' ? PERMISSIONS.IOS.MICROPHONE : PERMISSIONS.ANDROID.RECORD_AUDIO;
@@ -79,7 +57,7 @@ function RecordScreen() {
     const backPermission = await check(backgroundPermission);
 
     if (micPermission != 'granted') {
-      await request(micPermission);
+      await Audio.requestPermissionsAsync();
       return;
     };
     if (coarseLocationPermission != 'granted') {
@@ -103,9 +81,18 @@ function RecordScreen() {
   
   };
 
-  const stop = async () => {
+  const finish = async () => {
     setRecordState(recordStateEnum.stopped);
     setPause(false);
+    navigator.navigate('Recording')
+
+    // Now we have all the state:
+    // history + audiofile
+    // After finish click send user to form to finish the recording.
+
+
+
+
   };
 
   const toggle = async () => {
@@ -121,12 +108,50 @@ function RecordScreen() {
 
 
   useEffect(() => {
-    // Has to be useEffect since otherwise get in render-loop.
-    getLocation();    
+
+    // Tracks the location otherwise it is only set once.
+    if (fixedCenter) {
+      setCenter({
+        latitude: location.latitude,
+        longitude: location.longitude,
+        latitudeDelta: 0.015,
+        longitudeDelta: 0.0121
+      })
+    }
+
+
     return () => {
     }
+  }, [location])
+
+  // This useEffect hook has no dependencies and just used for initial location.
+  // subsequent location updates are resolved via the useTracking hook with other use effect. 
+  useEffect(() => {
+    getLocation();
   }, [])
 
+
+  const getLocation = async () => {
+    const geoPermission = Platform.OS === 'ios' ? PERMISSIONS.IOS.LOCATION_WHEN_IN_USE : PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION;
+
+    const permission = await check(geoPermission);
+    if (permission != 'authorized') {
+      await request(geoPermission)
+    }
+
+    Geolocation.getCurrentPosition((position) => {
+      const region = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        latitudeDelta: 0.015,
+        longitudeDelta: 0.0121
+      }
+      
+      setCenter(region)
+    }, (err) => {
+      console.log('failed to get position:', err.message);
+    });
+  }
   
   return (
     <View>
@@ -153,7 +178,7 @@ function RecordScreen() {
         :
           <View style={styles.row}>
             <Button onPress={toggle} title={pause ? 'Resume' : 'Pause'} />
-            <Button onPress={stop} title="Finish" />
+            <Button onPress={finish} title="Finish" />
           </View>
       }
 
