@@ -1,3 +1,14 @@
+/*
+  Description:
+
+  Todo:
+    - Figure out the best settings for background geolocation. or how to change based on
+      activity.
+    - Perhaps replace this open source mauron85 library by the Expo geolocation library.
+    
+*/
+
+
 import {useEffect, useState} from 'react';
 import {Alert} from 'react-native';
 import BackgroundGeolocation from '@mauron85/react-native-background-geolocation';
@@ -10,39 +21,13 @@ const useTracking = (recordState) => {
   const [location, setLocation] = useState(defaultLocation);
   const [history, setHistory] = useState([]);
   const [distance, setDistance] = useState(0);
+  const [startTime, setStartTime] = useState(Date.now());
 
   useEffect(() => {
     
     if (!recordState || recordState === recordStateEnum.stopped) {
       return;
     }
-
-
-    // BackgroundGeolocation.configure({
-    //   desiredAccuracy: BackgroundGeolocation.HIGH_ACCURACY,
-    //   stationaryRadius: 50,
-    //   distanceFilter: ,
-    //   notificationTitle: 'Background tracking',
-    //   notificationText: 'enabled',
-    //   // debug: true,
-    //   startOnBoot: false,
-    //   stopOnTerminate: true,
-    //   locationProvider: BackgroundGeolocation.DISTANCE_FILTER_PROVIDER, // DISTANCE_FILTER_PROVIDER for
-    //   interval: 10000,
-    //   fastestInterval: 5000,
-    //   activitiesInterval: 10000,
-    //   stopOnStillActivity: false,
-    //   url: 'http://192.168.81.15:3000/location',
-    //   httpHeaders: {
-    //     'X-FOO': 'bar',
-    //   },
-    //   // customize post properties
-    //   postTemplate: {
-    //     lat: '@latitude',
-    //     lon: '@longitude',
-    //     foo: 'bar', // you can also add your own properties
-    //   },
-    // });
 
     BackgroundGeolocation.configure({
       desiredAccuracy: BackgroundGeolocation.HIGH_ACCURACY,
@@ -70,6 +55,7 @@ const useTracking = (recordState) => {
       }
     });
 
+    // Todo: also add timestamp to each measured location.
     BackgroundGeolocation.on('location', (location) => {
       
       // When paused we don't want to save new GPS locations.
@@ -110,6 +96,7 @@ const useTracking = (recordState) => {
         return prev.concat({
           latitude: location.latitude,
           longitude: location.longitude,
+          timestamp : location.time - startTime
         });
       });
       
