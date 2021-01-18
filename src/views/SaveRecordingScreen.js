@@ -29,13 +29,21 @@ function SaveRecordingScreen({ route, navigation }) {
       const fileId = response.body.fileId
 
       const tour = {}
+      // Startpoint is geojson object in order to do server-side geo indexing.
+      // This allows us to query routes in a given bounding box for example.
+      tour.startPoint = {
+        type : "Point",
+        coordinates: [history[0].longitude, history[0].latitude]
+      }
       tour.route = history;
       tour.distance = distance;
       tour.fileId = fileId;
+
+      tour.title = 'Test value for title'
+      tour.description ='Test value for description'
       
       response = await Api.createTour(tour);
-      // navigate to my tours...
-      console.log(response);
+      
 
       navigation.navigate('Success');
     

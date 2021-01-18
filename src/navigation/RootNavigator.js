@@ -6,6 +6,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from '../views/home';
 import TourMap from '../views/TourMap';
 import RecordingNavigator from './RecordingNavigator';
+import PlaybackNavigator from './PlaybackNavigator';
 
 
 
@@ -21,7 +22,7 @@ function RootNavigator() {
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
 
-          if (route.name === 'TourMap') {
+          if (route.name === 'PlaybackNavigator') {
             iconName = focused ? 'map' : 'map-outline';
           } else if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
@@ -52,8 +53,8 @@ function RootNavigator() {
         }}
       />
       <Tab.Screen
-        name="TourMap"
-        component={TourMap}
+        name="PlaybackNavigator"
+        component={PlaybackNavigator}
       />
 
     </Tab.Navigator>
