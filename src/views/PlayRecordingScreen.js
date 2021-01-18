@@ -1,3 +1,12 @@
+/*
+  Description:
+
+  Todo:
+    - Add slider: https://github.com/callstack/react-native-slider
+    - Add map + gps location in playback on map. => gps {lat lon timestamp}
+    - Loader button on the audio playback
+*/
+
 import React from 'react';
 import {StyleSheet, View, Button, Text } from 'react-native'
 import MapView from 'react-native-maps';
