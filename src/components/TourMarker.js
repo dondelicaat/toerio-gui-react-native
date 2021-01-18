@@ -5,13 +5,12 @@ import { Callout } from 'react-native-maps';
 
 function TourMarker({ tour, navigation }) {
 
-  // console.log(props)
   console.log(tour.description)
   console.log(navigation)
   
   return (
     <Callout
-      onPress = {() => { navigation.navigate('PlayRecordingScreen'); }}
+      onPress = {() => { navigation.navigate('PlayRecordingScreen', {tour: tour} ) }}
     >
       <View>
         <Text>
