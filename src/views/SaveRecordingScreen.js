@@ -1,20 +1,21 @@
 import { FileSystemUploadType, uploadAsync } from 'expo-file-system';
-import React from 'react';
-import {Platform, View, StyleSheet, Button, Text} from 'react-native'
+import React, { useState } from 'react';
+import {Platform, View, StyleSheet, Button, Text, TextInput} from 'react-native'
 import * as FileSystem from 'expo-file-system';
+import { Formik, useFormik } from 'formik';
+import * as yup from 'yup';
 
 import Api from '../api/api';
 
 function SaveRecordingScreen({ route, navigation }) {
   const {fileUri, history, distance} = route.params;
 
-
   const progressCallback = (loaded, total) => {
     console.log(loaded);
     console.log(total);
   };
 
-  const upload = async () => {
+  const upload = async (tour) => {
     try {
       console.log('upload called')
       
@@ -28,7 +29,6 @@ function SaveRecordingScreen({ route, navigation }) {
       )
       const fileId = response.body.fileId
 
-      const tour = {}
       // Startpoint is geojson object in order to do server-side geo indexing.
       // This allows us to query routes in a given bounding box for example.
       tour.startPoint = {
@@ -38,9 +38,6 @@ function SaveRecordingScreen({ route, navigation }) {
       tour.route = history;
       tour.distance = distance;
       tour.fileId = fileId;
-
-      tour.title = 'Test value for title'
-      tour.description ='Test value for description'
       
       response = await Api.createTour(tour);
       
@@ -52,20 +49,78 @@ function SaveRecordingScreen({ route, navigation }) {
     }
   }
 
-  return (
-    <View>
-      <Text>{fileUri}</Text>
-      <Text>{distance}</Text>
-      <Text>{history.length}</Text>
-      <Text>moi</Text>
+  const submit = async (values) => {
+    const tour = {};
+    tour.title = values.title;
+    tour.description =  values.description;
+    tour.location = values.location;
+    await upload(tour);
+  }
 
-      <Button 
-        onPress = {upload}
-        title="Save"
-      >
-      </ Button>
-    </View>
+  return (
+    <Formik
+      initialValues = {{
+        title: '',
+        description: '',
+        location: ''
+      }}
+      onSubmit = { values => submit(values) }
+      validationSchema = {
+        yup.object().shape({
+          title: yup
+            .string()
+            .required('Please, provide a title!'),
+          description: yup
+            .string()
+            .required('Please provide a description'),
+          location: yup
+            .string()
+            .required('Please provide a location'),   
+          })
+      }
+    >
+      {({ touched, isValid, setFieldTouched, errors, handleChange, handleSubmit, values }) => (
+        <View>
+          <TextInput
+            placeholder = 'Title..'
+            onChangeText = {handleChange('title')}
+            onBlur={() => setFieldTouched('title')}
+            value={values.title}
+          />
+          {touched.title && errors.title &&
+            <Text style={{ fontSize: 12, color: '#FF0D10' }}>{errors.title}</Text>
+          }    
+          <TextInput
+            placeholder = 'Description..'
+            onChangeText = {handleChange('description')}
+            onBlur={() => setFieldTouched('description')}
+            value={values.description}
+          />
+          {touched.description && errors.description &&
+            <Text style={{ fontSize: 12, color: '#FF0D10' }}>{errors.description}</Text>
+          }    
+          <TextInput
+            placeholder = 'Location..'
+            onChangeText = {handleChange('location')}
+            onBlur={() => setFieldTouched('location')}
+            value={values.location}
+          />
+          {touched.location && errors.location &&
+            <Text style={{ fontSize: 12, color: '#FF0D10' }}>{errors.location}</Text>
+          }  
+
+          <Button 
+            onPress={handleSubmit} 
+            disabled={!isValid}
+            title="Submit" 
+          />
+        </View>
+      )}
+
+    </Formik>
+
   );
 }
+
 
 export default SaveRecordingScreen;
