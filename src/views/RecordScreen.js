@@ -4,6 +4,7 @@ import MapView, { PROVIDER_GOOGLE, Polyline } from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
 import {check, request, PERMISSIONS} from 'react-native-permissions';
 
+
 import useTracking from '../hooks/useTracking';
 
 import { Audio } from 'expo-av';
@@ -123,6 +124,7 @@ function RecordScreen({ navigation }) {
 
 
     return () => {
+      console.log('object unmounted')
     }
   }, [location])
 
@@ -180,7 +182,7 @@ function RecordScreen({ navigation }) {
         :
           <View style={styles.row}>
             <Button onPress={toggle} title={pause ? 'Resume' : 'Pause'} />
-            <Button onPress={finish} title="Finish" />
+            <Button onPress={finish} title="Finish" disabled = {history.length == 0 ? true : false}/>
           </View>
       }
 
