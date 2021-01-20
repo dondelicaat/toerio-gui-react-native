@@ -1,6 +1,6 @@
 import { FileSystemUploadType, uploadAsync } from 'expo-file-system';
 import React, { useState } from 'react';
-import {Platform, View, StyleSheet, Button, Text, TextInput} from 'react-native'
+import {Platform, View, StyleSheet, Button, Text, TextInput, Alert} from 'react-native'
 import * as FileSystem from 'expo-file-system';
 import { Formik, useFormik } from 'formik';
 import * as yup from 'yup';
@@ -27,7 +27,9 @@ function SaveRecordingScreen({ route, navigation }) {
           fieldName: 'audioFile'
         }
       )
-      const fileId = response.body.fileId
+
+      const responseJson = JSON.parse(response.body);
+      tour.fileId = responseJson.fileId;
 
       // Startpoint is geojson object in order to do server-side geo indexing.
       // This allows us to query routes in a given bounding box for example.
@@ -37,14 +39,15 @@ function SaveRecordingScreen({ route, navigation }) {
       }
       tour.route = history;
       tour.distance = distance;
-      tour.fileId = fileId;
-      
+     
+
       response = await Api.createTour(tour);
       
 
       navigation.navigate('Success');
     
     } catch (err) {
+      Alert.alert('something went wrong while looking for the playback file...');
       console.log(`Something went wrong while uploading: ${err}`)
     }
   }

@@ -8,7 +8,7 @@
 */
 
 import React from 'react';
-import {StyleSheet, View, Button, Text } from 'react-native'
+import {StyleSheet, View, Button, Text, Alert } from 'react-native'
 import { useEffect, useState } from 'react';
 import { Audio } from 'expo-av';
 import MapView, { PROVIDER_GOOGLE, Polyline } from 'react-native-maps';
@@ -46,6 +46,7 @@ function PlayRecordingScreen({ route }) {
       setSound(sound);
       setLoading(false);
     } catch (err) {
+      Alert.alert('something went wrong...');
       console.log('Something went wrong loading the audiofile...', err);
     }
   }
